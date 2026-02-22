@@ -1,7 +1,7 @@
 {
   "name": "@emmgfx/logger",
-  "version": "1.0.0",
-  "description": "Color coded logger",
+  "version": "1.0.1",
+  "description": "Color coded logger with buffer and source persistence for JavaScript/TypeScript",
   "type": "module",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -28,6 +28,14 @@
     "email": "josep@viciana.me",
     "url": "https://www.viciana.me"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emmgfx/logger.git"
+  },
+  "bugs": {
+    "url": "https://github.com/emmgfx/logger/issues"
+  },
+  "homepage": "https://github.com/emmgfx/logger#readme",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
