@@ -1,0 +1,35 @@
+{
+  "name": "@emmgfx/logger",
+  "version": "1.0.0",
+  "description": "Color coded logger",
+  "type": "module",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "logger",
+    "debug",
+    "color"
+  ],
+  "author": {
+    "name": "Josep Viciana",
+    "email": "josep@viciana.me",
+    "url": "https://www.viciana.me"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}
