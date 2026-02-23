@@ -10,7 +10,13 @@ export interface Logger {
   };
 }
 
+export interface LoggerInitOptions {
+  enabled?: boolean;
+  serverColors?: boolean;
+}
+
 export const loggerConfig: {
+  init: (options: LoggerInitOptions) => void;
   enable: () => void;
   disable: () => void;
   readonly status: boolean;

@@ -1,7 +1,23 @@
-// Internal state:
-let isEnabled = typeof process !== "undefined" && process.env.LOGGER_ENABLED === "true";
-let instancesCounter = 0;
-const sourcesColors = {};
+const getGlobal = () => {
+  if (typeof window !== "undefined") return window;
+  if (typeof global !== "undefined") return global;
+  if (typeof self !== "undefined") return self;
+  return {};
+};
+
+const _global = getGlobal();
+const GLOBAL_KEY = "__EMMGFX_LOGGER_STATE__";
+
+if (!_global[GLOBAL_KEY]) {
+  _global[GLOBAL_KEY] = {
+    enabled: false,
+    serverColors: false,
+    instancesCounter: 0,
+    sourcesColors: {},
+  };
+}
+
+const state = _global[GLOBAL_KEY];
 const COLORS = [
   "#f87171",
   "#fb923c",
@@ -14,53 +30,61 @@ const COLORS = [
   "#e879f9",
 ];
 
-// Config:
+const ANSI_COLORS = {
+  "#f87171": "31", // Rojo
+  "#4ade80": "32", // Verde
+  "#f59e0b": "33", // Amarillo
+  "#60a5fa": "34", // Azul
+  "#a78bfa": "35", // Magenta
+  "#2dd4bf": "36", // Cian
+};
+
 export const loggerConfig = {
-  enable: () => {
-    isEnabled = true;
+  init: ({ enabled, serverColors }) => {
+    state.enabled = !!enabled;
+    state.serverColors = !!serverColors;
   },
-  disable: () => {
-    isEnabled = false;
-  },
+  enable: () => (state.enabled = true),
+  disable: () => (state.enabled = false),
   get status() {
-    return isEnabled;
+    return state.enabled;
   },
 };
 
-// Logger:
 export const createLogger = (source) => {
-  if (!isEnabled) {
-    const empty = () => {};
-    return {
-      log: empty,
-      warn: empty,
-      error: empty,
-      group: empty,
-      groupEnd: empty,
-      createBuffer: () => ({ add: empty, flush: empty }),
-    };
+  if (!state.sourcesColors[source]) {
+    state.sourcesColors[source] = COLORS[state.instancesCounter % COLORS.length];
+    state.instancesCounter++;
   }
 
-  if (!sourcesColors[source]) {
-    sourcesColors[source] = COLORS[instancesCounter % COLORS.length];
-    instancesCounter++;
+  const isBrowser = typeof window !== "undefined";
+  const color = state.sourcesColors[source];
+  let label;
+  if (isBrowser) {
+    label = [`%c${source}:`, `color: ${color}; font-weight:bold;`];
+  } else {
+    const useColors = state.serverColors;
+    const ansiCode = ANSI_COLORS[color] || "37";
+    label = useColors ? [`\x1b[1;${ansiCode}m${source}:\x1b[0m`] : [`${source}:`];
   }
 
-  const color = sourcesColors[source];
-  const label = [`%c${source}:`, `color: ${color}; font-weight:bold;`];
+  const check =
+    (fn) =>
+    (...args) =>
+      loggerConfig.status && fn(...args);
 
   return {
-    log: (...args) => console.log(...label, ...args),
-    warn: (...args) => console.warn(...label, ...args),
-    error: (...args) => console.error(...label, ...args),
-    group: (...args) => console.group(...label, ...args),
-    groupEnd: () => console.groupEnd(),
+    log: check((...args) => console.log(...label, ...args)),
+    warn: check((...args) => console.warn(...label, ...args)),
+    error: check((...args) => console.error(...label, ...args)),
+    group: check((...args) => console.group(...label, ...args)),
+    groupEnd: check(() => console.groupEnd()),
     createBuffer: (bufferLabel) => {
       let items = [];
       return {
         add: (...args) => items.push(args),
         flush: () => {
-          if (items.length === 0) return;
+          if (!loggerConfig.status || items.length === 0) return;
           console.group(...label, bufferLabel);
           items.forEach((args) => console.log(...args));
           console.groupEnd();
