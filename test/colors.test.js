@@ -78,6 +78,20 @@ test("in the browser the label is a css directive", () => {
   });
 });
 
+test("source names are taken literally", () => {
+  loggerConfig.init({ enabled: true, serverColors: true });
+
+  const codeOf = (name) => {
+    const logger = createLogger(name);
+    return ansiCodeOf(capture(() => logger.log("x"))[0].args[0]);
+  };
+
+  // Names are keys, not identifiers: nothing is trimmed, folded or coerced.
+  assert.notEqual(codeOf("Payments"), codeOf("payments"));
+  assert.notEqual(codeOf("api"), codeOf("api "));
+  assert.equal(globalThis.__EMMGFX_LOGGER_STATE__.instancesCounter, 4);
+});
+
 test("browser colors cycle through the whole palette before repeating", () => {
   asBrowser(() => {
     loggerConfig.enable();

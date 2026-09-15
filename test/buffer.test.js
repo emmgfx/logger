@@ -2,7 +2,7 @@ import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 
 import { createLogger, loggerConfig } from "../src/index.js";
-import { resetState, capture } from "./helpers.js";
+import { resetState, capture, ansiCodeOf } from "./helpers.js";
 
 beforeEach(resetState);
 
@@ -68,4 +68,54 @@ test("flushing while disabled empties the buffer", () => {
 
   loggerConfig.enable();
   assert.deepEqual(capture(() => buffer.flush()), []);
+});
+
+test("the group label is colored when serverColors is on", () => {
+  loggerConfig.init({ enabled: true, serverColors: true });
+  const buffer = createLogger("colored-group").createBuffer("Batch");
+
+  const [group] = capture(() => {
+    buffer.add("entry");
+    buffer.flush();
+  });
+
+  assert.ok(ansiCodeOf(group.args[0]), "the group label carries no color");
+  assert.equal(group.args[1], "Batch");
+});
+
+test("two buffers from one logger stay independent", () => {
+  loggerConfig.enable();
+  const logger = createLogger("two-buffers");
+  const first = logger.createBuffer("First");
+  const second = logger.createBuffer("Second");
+
+  first.add("belongs to first");
+  second.add("belongs to second");
+
+  const calls = capture(() => first.flush());
+
+  assert.deepEqual(calls[0].args, ["two-buffers:", "First"]);
+  assert.deepEqual(calls[1].args, ["belongs to first"]);
+  assert.equal(calls.length, 3, "the other buffer was flushed as well");
+
+  const rest = capture(() => second.flush());
+  assert.deepEqual(rest[1].args, ["belongs to second"]);
+});
+
+test("groups can be nested", () => {
+  loggerConfig.enable();
+  const logger = createLogger("nested");
+
+  const calls = capture(() => {
+    logger.group("outer");
+    logger.group("inner");
+    logger.log("deep");
+    logger.groupEnd();
+    logger.groupEnd();
+  });
+
+  assert.deepEqual(
+    calls.map((call) => call.method),
+    ["group", "group", "log", "groupEnd", "groupEnd"]
+  );
 });

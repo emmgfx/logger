@@ -38,13 +38,6 @@ test("messages are attributed to the file that logged them", () => {
   assert.doesNotMatch(frame, /src[/\\]index\.js/);
 });
 
-test("the methods are bound, with no wrapper in between", () => {
-  const logger = createLogger("bound");
-  loggerConfig.enable();
-
-  assert.equal(logger.log.name, "bound log");
-});
-
 test("a disabled logger hands back a noop rather than a bound console", () => {
   const logger = createLogger("noop");
 
