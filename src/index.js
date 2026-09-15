@@ -35,6 +35,8 @@ const COLORS = [
 // can never leave a source uncolored.
 const ANSI_CODES = ["31", "32", "33", "34", "35", "36"];
 
+const noop = () => {};
+
 export const loggerConfig = {
   // Only the keys actually passed are touched, so a partial init cannot
   // silently reset the other ones.
@@ -61,8 +63,8 @@ export const createLogger = (source) => {
 
   // Built on use, not on creation: loggers are usually created at module
   // top level, which runs before the app gets to call init(). Reading the
-  // config here also lets serverColors be flipped at runtime. It only runs
-  // when something is actually printed, since check() bails out first.
+  // config here also lets serverColors be flipped at runtime. It never runs
+  // while logging is off, since nothing gets bound in that case.
   const getLabel = () => {
     if (isBrowser) {
       const color = COLORS[index % COLORS.length];
@@ -79,12 +81,30 @@ export const createLogger = (source) => {
     (...args) =>
       loggerConfig.status && fn(...args);
 
+  // Bound rather than wrapped, so devtools blames the caller's line instead
+  // of this file. A wrapper would sit between the call and console.*, and
+  // that intermediate frame is what the source link points at. Getters keep
+  // enable() and disable() working: the decision is made when the method is
+  // read, not when the logger was created.
+  const bind = (method) =>
+    state.enabled ? console[method].bind(console, ...getLabel()) : noop;
+
   return {
-    log: check((...args) => console.log(...getLabel(), ...args)),
-    warn: check((...args) => console.warn(...getLabel(), ...args)),
-    error: check((...args) => console.error(...getLabel(), ...args)),
-    group: check((...args) => console.group(...getLabel(), ...args)),
-    groupEnd: check(() => console.groupEnd()),
+    get log() {
+      return bind("log");
+    },
+    get warn() {
+      return bind("warn");
+    },
+    get error() {
+      return bind("error");
+    },
+    get group() {
+      return bind("group");
+    },
+    get groupEnd() {
+      return state.enabled ? console.groupEnd.bind(console) : noop;
+    },
     createBuffer: (bufferLabel) => {
       let items = [];
       return {
