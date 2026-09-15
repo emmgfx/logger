@@ -82,12 +82,13 @@ export const createLogger = (source) => {
     createBuffer: (bufferLabel) => {
       let items = [];
       return {
-        add: (...args) => items.push(args),
+        add: check((...args) => items.push(args)),
         flush: () => {
-          if (!loggerConfig.status || items.length === 0) return;
-          console.group(...label, bufferLabel);
-          items.forEach((args) => console.log(...args));
-          console.groupEnd();
+          if (loggerConfig.status && items.length > 0) {
+            console.group(...label, bufferLabel);
+            items.forEach((args) => console.log(...args));
+            console.groupEnd();
+          }
           items = [];
         },
       };
