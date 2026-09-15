@@ -2,6 +2,7 @@ Color coded logger for JavaScript/TypeScript. Works on Browser and Node.
 
 - [Install](#install)
 - [Basic usage](#basic-usage)
+- [Configuration](#configuration)
 - [Next.js integration sample](#nextjs-integration-sample)
 
 ## Install
@@ -29,6 +30,27 @@ const logger = createLogger("Login button");
 // And use it:
 logger.log("Clicked");
 ```
+
+## Configuration
+
+Logging is disabled by default, so nothing is printed until you enable it.
+
+| Method                 | Description                                              |
+| ---------------------- | -------------------------------------------------------- |
+| `init(options?)`       | Sets the options given. Keys left out are not modified.  |
+| `enable()`             | Enables logging.                                         |
+| `disable()`            | Disables logging.                                        |
+| `status`               | Read-only. Whether logging is currently enabled.         |
+
+### Options
+
+| Option         | Default | Description                                                                    |
+| -------------- | ------- | ------------------------------------------------------------------------------ |
+| `enabled`      | `false` | Whether messages are printed at all.                                           |
+| `serverColors` | `false` | ANSI colors for labels outside the browser. Leave off when the output is not a terminal, such as a log file or a collector. |
+
+Configuration is global and can be changed at any time, including after your
+loggers have been created.
 
 ## Methods
 
