@@ -13,7 +13,7 @@ if (!_global[GLOBAL_KEY]) {
     enabled: false,
     serverColors: false,
     instancesCounter: 0,
-    sourcesColors: {},
+    sourcesIndexes: {},
   };
 }
 
@@ -48,20 +48,21 @@ export const loggerConfig = {
 };
 
 export const createLogger = (source) => {
-  if (!state.sourcesColors[source]) {
-    state.sourcesColors[source] = COLORS[state.instancesCounter % COLORS.length];
+  // Index 0 is falsy, so this has to be an explicit undefined check.
+  if (state.sourcesIndexes[source] === undefined) {
+    state.sourcesIndexes[source] = state.instancesCounter;
     state.instancesCounter++;
   }
 
   const isBrowser = typeof window !== "undefined";
-  const color = state.sourcesColors[source];
+  const index = state.sourcesIndexes[source];
   let label;
   if (isBrowser) {
+    const color = COLORS[index % COLORS.length];
     label = [`%c${source}:`, `color: ${color}; font-weight:bold;`];
   } else {
     const useColors = state.serverColors;
-    const colorIndex = Math.max(0, COLORS.indexOf(color));
-    const ansiCode = ANSI_CODES[colorIndex % ANSI_CODES.length];
+    const ansiCode = ANSI_CODES[index % ANSI_CODES.length];
     label = useColors ? [`\x1b[1;${ansiCode}m${source}:\x1b[0m`] : [`${source}:`];
   }
 
