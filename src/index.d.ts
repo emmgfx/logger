@@ -16,7 +16,7 @@ export interface LoggerInitOptions {
 }
 
 export const loggerConfig: {
-  init: (options: LoggerInitOptions) => void;
+  init: (options?: LoggerInitOptions) => void;
   enable: () => void;
   disable: () => void;
   readonly status: boolean;

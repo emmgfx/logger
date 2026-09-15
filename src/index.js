@@ -36,9 +36,11 @@ const COLORS = [
 const ANSI_CODES = ["31", "32", "33", "34", "35", "36"];
 
 export const loggerConfig = {
-  init: ({ enabled, serverColors }) => {
-    state.enabled = !!enabled;
-    state.serverColors = !!serverColors;
+  // Only the keys actually passed are touched, so a partial init cannot
+  // silently reset the other ones.
+  init: ({ enabled, serverColors } = {}) => {
+    if (enabled !== undefined) state.enabled = !!enabled;
+    if (serverColors !== undefined) state.serverColors = !!serverColors;
   },
   enable: () => (state.enabled = true),
   disable: () => (state.enabled = false),
@@ -56,15 +58,21 @@ export const createLogger = (source) => {
 
   const isBrowser = typeof window !== "undefined";
   const index = state.sourcesIndexes[source];
-  let label;
-  if (isBrowser) {
-    const color = COLORS[index % COLORS.length];
-    label = [`%c${source}:`, `color: ${color}; font-weight:bold;`];
-  } else {
-    const useColors = state.serverColors;
+
+  // Built on use, not on creation: loggers are usually created at module
+  // top level, which runs before the app gets to call init(). Reading the
+  // config here also lets serverColors be flipped at runtime. It only runs
+  // when something is actually printed, since check() bails out first.
+  const getLabel = () => {
+    if (isBrowser) {
+      const color = COLORS[index % COLORS.length];
+      return [`%c${source}:`, `color: ${color}; font-weight:bold;`];
+    }
     const ansiCode = ANSI_CODES[index % ANSI_CODES.length];
-    label = useColors ? [`\x1b[1;${ansiCode}m${source}:\x1b[0m`] : [`${source}:`];
-  }
+    return state.serverColors
+      ? [`\x1b[1;${ansiCode}m${source}:\x1b[0m`]
+      : [`${source}:`];
+  };
 
   const check =
     (fn) =>
@@ -72,10 +80,10 @@ export const createLogger = (source) => {
       loggerConfig.status && fn(...args);
 
   return {
-    log: check((...args) => console.log(...label, ...args)),
-    warn: check((...args) => console.warn(...label, ...args)),
-    error: check((...args) => console.error(...label, ...args)),
-    group: check((...args) => console.group(...label, ...args)),
+    log: check((...args) => console.log(...getLabel(), ...args)),
+    warn: check((...args) => console.warn(...getLabel(), ...args)),
+    error: check((...args) => console.error(...getLabel(), ...args)),
+    group: check((...args) => console.group(...getLabel(), ...args)),
     groupEnd: check(() => console.groupEnd()),
     createBuffer: (bufferLabel) => {
       let items = [];
@@ -83,7 +91,7 @@ export const createLogger = (source) => {
         add: check((...args) => items.push(args)),
         flush: () => {
           if (loggerConfig.status && items.length > 0) {
-            console.group(...label, bufferLabel);
+            console.group(...getLabel(), bufferLabel);
             items.forEach((args) => console.log(...args));
             console.groupEnd();
           }
