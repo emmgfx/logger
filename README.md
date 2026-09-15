@@ -1,5 +1,7 @@
 Color coded logger for JavaScript/TypeScript. Works on Browser and Node.
 
+[![test](https://github.com/emmgfx/logger/actions/workflows/test.yml/badge.svg)](https://github.com/emmgfx/logger/actions/workflows/test.yml)
+
 - [Install](#install)
 - [Basic usage](#basic-usage)
 - [Configuration](#configuration)
