@@ -105,6 +105,33 @@ export const createLogger = (source) => {
     get groupEnd() {
       return state.enabled ? console.groupEnd.bind(console) : noop;
     },
+    // Takes a function so the message is only built when it will be seen:
+    // arguments are evaluated at the call site, so anything handed to log()
+    // is paid for even while logging is off. Worth it only when building the
+    // message costs real work.
+    //
+    // This one cannot be bound, since the returned value has to be unwrapped,
+    // so it reports src/index.js as the source line instead of the caller.
+    //
+    // Neither a misuse nor a throwing callback may take the application down
+    // with them: turning the logger on must never break what works with it
+    // off. Both are reported and swallowed.
+    expensive: (build) => {
+      if (!state.enabled) return;
+      if (typeof build !== "function") {
+        console.error(
+          ...getLabel(),
+          `expensive() expects a function, received ${typeof build}:`,
+          build
+        );
+        return;
+      }
+      try {
+        console.log(...getLabel(), build());
+      } catch (error) {
+        console.error(...getLabel(), "expensive() callback threw:", error);
+      }
+    },
     createBuffer: (bufferLabel) => {
       let items = [];
       return {

@@ -3,6 +3,9 @@ Color coded logger for JavaScript/TypeScript. Works on Browser and Node.
 - [Install](#install)
 - [Basic usage](#basic-usage)
 - [Configuration](#configuration)
+- [Methods](#methods)
+- [Expensive messages](#expensive-messages)
+- [Buffers](#buffers)
 - [Next.js integration sample](#nextjs-integration-sample)
 
 ## Install
@@ -61,7 +64,30 @@ loggers have been created.
 | `error`        | Logs an error message with the logger label.  |
 | `group`        | Starts a new log group with the logger label. |
 | `groupEnd`     | Ends the current log group.                   |
+| `expensive`    | See more about [Expensive messages](#expensive-messages) |
 | `createBuffer` | See more about [Buffers](#buffers)            |
+
+## Expensive messages
+
+Building a log message sometimes costs real work: serializing a big object, reading layout from the DOM, walking a long list. That work happens even when logging is disabled, because the argument is built before `log` ever runs:
+
+```js
+// state is serialized on every call, printed or not
+logger.log("state", JSON.stringify(state));
+```
+
+`expensive` takes a function instead of a value, and only calls it if logging is enabled:
+
+```js
+// serialized only when logging is on
+logger.expensive(() => `state: ${JSON.stringify(state)}`);
+```
+
+Whatever the function returns is logged as a single argument, so return a string or an object rather than a list of values.
+
+Reach for it when the message is costly to build **and** the code runs often — inside a render, a scroll handler, a loop. For plain values it is not worth it: `logger.log("saved", id)` is already free, and wrapping it in a function costs more than the value itself.
+
+Two notes. If the function throws, the error is reported and swallowed: turning the logger on never breaks what works with it off. And unlike the other methods, `expensive` reports the library as the source of the message in devtools instead of your own file, because the returned value has to be unwrapped before printing.
 
 ## Buffers
 

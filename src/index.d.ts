@@ -4,6 +4,12 @@ export interface Logger {
   error: (...args: any[]) => void;
   group: (...args: any[]) => void;
   groupEnd: () => void;
+  /**
+   * Logs a message that costs real work to build. The function is called
+   * only if logging is enabled, so nothing is computed while it is off.
+   * Its return value is logged as a single argument.
+   */
+  expensive: (build: () => unknown) => void;
   createBuffer: (label: string) => {
     add: (...args: any[]) => void;
     flush: () => void;

@@ -5,6 +5,22 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0]
+
+### Added
+
+- `logger.expensive(build)` takes a function and calls it only if logging is
+  enabled, so a message that costs real work to build is not paid for while
+  the logger is off. A misused call or a throwing callback is reported and
+  swallowed rather than propagated.
+
+### Fixed
+
+- Messages report the caller's line in devtools instead of `src/index.js`.
+  Every method wrapped `console.*` in an arrow function, and that
+  intermediate frame was what the source link pointed at. Methods are now
+  bound functions handed out through getters.
+
 ## [1.2.0]
 
 ### Added
@@ -48,6 +64,7 @@ Earlier releases predate this changelog.
 
 ## [1.0.0]
 
+[1.3.0]: https://github.com/emmgfx/logger/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/emmgfx/logger/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/emmgfx/logger/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/emmgfx/logger/compare/v1.0.0...v1.0.1
