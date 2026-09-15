@@ -30,14 +30,10 @@ const COLORS = [
   "#e879f9",
 ];
 
-const ANSI_COLORS = {
-  "#f87171": "31", // Rojo
-  "#4ade80": "32", // Verde
-  "#f59e0b": "33", // Amarillo
-  "#60a5fa": "34", // Azul
-  "#a78bfa": "35", // Magenta
-  "#2dd4bf": "36", // Cian
-};
+// Basic codes only: the terminal theme paints them, so contrast against
+// its own background is guaranteed. Cycled by index, so growing COLORS
+// can never leave a source uncolored.
+const ANSI_CODES = ["31", "32", "33", "34", "35", "36"];
 
 export const loggerConfig = {
   init: ({ enabled, serverColors }) => {
@@ -64,7 +60,8 @@ export const createLogger = (source) => {
     label = [`%c${source}:`, `color: ${color}; font-weight:bold;`];
   } else {
     const useColors = state.serverColors;
-    const ansiCode = ANSI_COLORS[color] || "37";
+    const colorIndex = Math.max(0, COLORS.indexOf(color));
+    const ansiCode = ANSI_CODES[colorIndex % ANSI_CODES.length];
     label = useColors ? [`\x1b[1;${ansiCode}m${source}:\x1b[0m`] : [`${source}:`];
   }
 
