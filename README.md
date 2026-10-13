@@ -1,4 +1,6 @@
-Color coded logger for JavaScript/TypeScript. Works on Browser and Node.
+# @emmgfx/logger
+
+Color coded logger for JavaScript/TypeScript. Works in the browser and in Node.
 
 [![test](https://github.com/emmgfx/logger/actions/workflows/test.yml/badge.svg)](https://github.com/emmgfx/logger/actions/workflows/test.yml)
 
@@ -9,6 +11,7 @@ Color coded logger for JavaScript/TypeScript. Works on Browser and Node.
 - [Expensive messages](#expensive-messages)
 - [Buffers](#buffers)
 - [Next.js integration sample](#nextjs-integration-sample)
+- [License](#license)
 
 ## Install
 
@@ -18,9 +21,10 @@ Using NPM:
 npm i @emmgfx/logger
 ```
 
+The package is ESM only, so load it with `import`; `require` is not supported. TypeScript types are included.
+
 ## Basic usage
 
-The usage is so simple:
 
 ```js
 // Import it:
@@ -35,6 +39,8 @@ const logger = createLogger("Login button");
 // And use it:
 logger.log("Clicked");
 ```
+
+Every message is prefixed with the logger label, and each label gets its own color. A label keeps its color for the whole session, even when several copies of the package are bundled, because the configuration and the colors live in a single global state.
 
 ## Configuration
 
@@ -113,7 +119,9 @@ buffer.flush(); // Outputs all buffered logs as a group
 | `add`   | Adds a message to the buffer. Accepts any arguments as with `console.log`. |
 | `flush` | Outputs all buffered messages as a group and clears the buffer.            |
 
-## Next.js integration sample:
+The group is titled with the logger label followed by the buffer label. While logging is disabled, `add` ignores its arguments and `flush` prints nothing, so a buffer never holds on to data it will not print.
+
+## Next.js integration sample
 
 ### instrumentation.js
 
@@ -122,7 +130,8 @@ import { loggerConfig } from "@emmgfx/logger";
 // ...
 loggerConfig.init({
   enabled: process.env.NEXT_PUBLIC_LOGGER_ENABLED === "true",
-  serverColors: false, // Default to false
+  // Turn on for colored output in a terminal, leave off when the logs go to a file or a collector
+  serverColors: false,
 });
 ```
 
@@ -144,3 +153,7 @@ import { createLogger } from "@emmgfx/logger";
 const logger = createLogger("Layout");
 logger.log("On client or server");
 ```
+
+## License
+
+MIT © [Josep Viciana](https://www.viciana.me)
