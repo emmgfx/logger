@@ -119,3 +119,104 @@ test("groups can be nested", () => {
     ["group", "group", "log", "groupEnd", "groupEnd"]
   );
 });
+
+test("a collapsed buffer flushes as a collapsed group", () => {
+  loggerConfig.enable();
+  const buffer = createLogger("collapsed").createBuffer("Batch", {
+    collapsed: true,
+  });
+
+  const calls = capture(() => {
+    buffer.add("first");
+    buffer.add("second", { some: "data" });
+    buffer.flush();
+  });
+
+  assert.deepEqual(
+    calls.map((call) => call.method),
+    ["groupCollapsed", "log", "log", "groupEnd"]
+  );
+  assert.deepEqual(calls[0].args, ["collapsed:", "Batch"]);
+  assert.deepEqual(calls[2].args, ["second", { some: "data" }]);
+});
+
+test("collapsed: false keeps the group expanded", () => {
+  loggerConfig.enable();
+  const buffer = createLogger("not-collapsed").createBuffer("Batch", {
+    collapsed: false,
+  });
+
+  const calls = capture(() => {
+    buffer.add("entry");
+    buffer.flush();
+  });
+
+  assert.equal(calls[0].method, "group");
+});
+
+test("a collapsed buffer prints nothing while disabled", () => {
+  const buffer = createLogger("collapsed-off").createBuffer("Batch", {
+    collapsed: true,
+  });
+
+  const calls = capture(() => {
+    buffer.add("dropped");
+    buffer.flush();
+  });
+
+  assert.deepEqual(calls, []);
+});
+
+test("the collapsed group label is colored when serverColors is on", () => {
+  loggerConfig.init({ enabled: true, serverColors: true });
+  const buffer = createLogger("colored-collapsed").createBuffer("Batch", {
+    collapsed: true,
+  });
+
+  const [group] = capture(() => {
+    buffer.add("entry");
+    buffer.flush();
+  });
+
+  assert.equal(group.method, "groupCollapsed");
+  assert.ok(ansiCodeOf(group.args[0]), "the group label carries no color");
+  assert.equal(group.args[1], "Batch");
+});
+
+test("groupCollapsed opens a labelled group that groupEnd closes", () => {
+  loggerConfig.enable();
+  const logger = createLogger("manual-collapsed");
+
+  const calls = capture(() => {
+    logger.groupCollapsed("Reconnection");
+    logger.log("step");
+    logger.groupEnd();
+  });
+
+  assert.deepEqual(
+    calls.map((call) => call.method),
+    ["groupCollapsed", "log", "groupEnd"]
+  );
+  assert.deepEqual(calls[0].args, ["manual-collapsed:", "Reconnection"]);
+});
+
+test("groupCollapsed is colored when serverColors is on", () => {
+  loggerConfig.init({ enabled: true, serverColors: true });
+  const logger = createLogger("manual-colored");
+
+  const [call] = capture(() => logger.groupCollapsed("Reconnection"));
+
+  assert.ok(ansiCodeOf(call.args[0]), "the group label carries no color");
+});
+
+test("groupCollapsed prints nothing while disabled", () => {
+  const logger = createLogger("manual-off");
+
+  const calls = capture(() => {
+    logger.groupCollapsed("Reconnection");
+    logger.groupEnd();
+  });
+
+  assert.deepEqual(calls, []);
+  assert.equal(logger.groupCollapsed.name, "noop");
+});

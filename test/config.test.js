@@ -66,14 +66,16 @@ test("every method carries the source label", () => {
     logger.warn("b");
     logger.error("c");
     logger.group("d");
+    logger.groupCollapsed("e");
+    logger.groupEnd();
     logger.groupEnd();
   });
 
   assert.deepEqual(
     calls.map((call) => call.method),
-    ["log", "warn", "error", "group", "groupEnd"]
+    ["log", "warn", "error", "group", "groupCollapsed", "groupEnd", "groupEnd"]
   );
-  for (const call of calls.slice(0, 4)) {
+  for (const call of calls.slice(0, 5)) {
     assert.equal(call.args[0], "labelled:");
   }
 });

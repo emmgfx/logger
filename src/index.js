@@ -102,6 +102,9 @@ export const createLogger = (source) => {
     get group() {
       return bind("group");
     },
+    get groupCollapsed() {
+      return bind("groupCollapsed");
+    },
     get groupEnd() {
       return state.enabled ? console.groupEnd.bind(console) : noop;
     },
@@ -132,13 +135,16 @@ export const createLogger = (source) => {
         console.error(...getLabel(), "expensive() callback threw:", error);
       }
     },
-    createBuffer: (bufferLabel) => {
+    // A collapsed buffer suits detail that only matters when something goes
+    // wrong: it stays one line in the console until it is expanded.
+    createBuffer: (bufferLabel, { collapsed = false } = {}) => {
+      const openGroup = collapsed ? "groupCollapsed" : "group";
       let items = [];
       return {
         add: check((...args) => items.push(args)),
         flush: () => {
           if (loggerConfig.status && items.length > 0) {
-            console.group(...getLabel(), bufferLabel);
+            console[openGroup](...getLabel(), bufferLabel);
             items.forEach((args) => console.log(...args));
             console.groupEnd();
           }

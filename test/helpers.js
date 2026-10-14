@@ -14,7 +14,14 @@ export const resetState = () => {
   state.sourcesIndexes = {};
 };
 
-const CONSOLE_METHODS = ["log", "warn", "error", "group", "groupEnd"];
+const CONSOLE_METHODS = [
+  "log",
+  "warn",
+  "error",
+  "group",
+  "groupCollapsed",
+  "groupEnd",
+];
 
 /**
  * Runs `fn` with the console methods recorded instead of printed, and returns

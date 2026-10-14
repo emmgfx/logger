@@ -24,6 +24,7 @@ test("every method that prints a label styles it with %c", () => {
     logger.warn("b");
     logger.error("c");
     logger.group("d");
+    logger.groupCollapsed("e");
   });
 
   for (const call of calls) {
@@ -59,6 +60,23 @@ test("a buffer styles the label of its group", () => {
     "Batch",
   ]);
   assert.match(calls[0].args[1], CSS);
+});
+
+test("a collapsed buffer styles the label of its group", () => {
+  const buffer = createLogger("styled-collapsed").createBuffer("Batch", {
+    collapsed: true,
+  });
+  loggerConfig.enable();
+
+  const calls = capture(() => {
+    buffer.add("entry");
+    buffer.flush();
+  });
+
+  assert.equal(calls[0].method, "groupCollapsed");
+  assert.equal(calls[0].args[0], "%cstyled-collapsed:");
+  assert.match(calls[0].args[1], CSS);
+  assert.equal(calls[0].args[2], "Batch");
 });
 
 test("serverColors does not leak into the browser label", () => {
