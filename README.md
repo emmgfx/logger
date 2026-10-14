@@ -65,15 +65,19 @@ loggers have been created.
 
 ## Methods
 
-| Method         | Description                                   |
-| -------------- | --------------------------------------------- |
-| `log`          | Logs a message with the logger label.         |
-| `warn`         | Logs a warning message with the logger label. |
-| `error`        | Logs an error message with the logger label.  |
-| `group`        | Starts a new log group with the logger label. |
-| `groupEnd`     | Ends the current log group.                   |
-| `expensive`    | See more about [Expensive messages](#expensive-messages) |
-| `createBuffer` | See more about [Buffers](#buffers)            |
+| Method           | Description                                                                  |
+| ---------------- | ---------------------------------------------------------------------------- |
+| `log`            | Logs a message with the logger label.                                        |
+| `warn`           | Logs a warning message with the logger label.                                |
+| `error`          | Logs an error message with the logger label.                                 |
+| `group`          | Starts a new log group with the logger label.                                |
+| `groupCollapsed` | Like `group`, but the group starts collapsed in the browser console.         |
+| `groupEnd`       | Ends the current log group, whether opened with `group` or `groupCollapsed`. |
+| `expensive`      | See more about [Expensive messages](#expensive-messages)                     |
+| `createBuffer`   | See more about [Buffers](#buffers)                                           |
+
+In Node, `groupCollapsed` prints the same as `group`: terminals cannot fold
+output, so the group is only indented.
 
 ## Expensive messages
 
@@ -120,6 +124,23 @@ buffer.flush(); // Outputs all buffered logs as a group
 | `flush` | Outputs all buffered messages as a group and clears the buffer.            |
 
 The group is titled with the logger label followed by the buffer label. While logging is disabled, `add` ignores its arguments and `flush` prints nothing, so a buffer never holds on to data it will not print.
+
+### Collapsed buffers
+
+Pass `{ collapsed: true }` to flush the buffer as a collapsed group, which stays a single line in the browser console until it is expanded. It suits detail that only matters when something goes wrong, such as every step of a reconnection:
+
+```js
+const buffer = logger.createBuffer("Reconnection", { collapsed: true });
+buffer.add("Socket closed", { code: 1006 });
+buffer.add("Retrying in", 2000, "ms");
+buffer.flush(); // Outputs a collapsed group
+```
+
+| Option      | Default | Description                                                         |
+| ----------- | ------- | ------------------------------------------------------------------- |
+| `collapsed` | `false` | Flush with `console.groupCollapsed` instead of `console.group`.     |
+
+As with `groupCollapsed`, Node prints a collapsed buffer the same as an expanded one.
 
 ## Next.js integration sample
 

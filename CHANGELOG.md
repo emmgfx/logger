@@ -5,6 +5,20 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0]
+
+### Added
+
+- `createBuffer(label, { collapsed: true })` flushes the buffer with
+  `console.groupCollapsed`, so detail that only matters when something fails
+  stays folded in the browser console. Without the option, buffers flush
+  expanded as before.
+- `logger.groupCollapsed(...)` opens a collapsed group with the same label and
+  colors as `logger.group`, and is closed with the existing `groupEnd`.
+
+Both respect `enabled` like the other methods. In Node, a collapsed group
+prints the same as an expanded one.
+
 ## [1.3.0]
 
 ### Added
@@ -64,6 +78,7 @@ Earlier releases predate this changelog.
 
 ## [1.0.0]
 
+[1.4.0]: https://github.com/emmgfx/logger/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/emmgfx/logger/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/emmgfx/logger/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/emmgfx/logger/compare/v1.0.1...v1.1.0
